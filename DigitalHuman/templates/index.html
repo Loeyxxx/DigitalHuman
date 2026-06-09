@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字人播报系统</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <h1>🎙️ 数字人播报系统</h1>
+            <p>上传数字人形象，输入播报内容，一键生成播报视频</p>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 左侧：素材上传 -->
+            <section class="panel upload-panel">
+                <h2>📤 素材上传</h2>
+                
+                <!-- 数字人形象 -->
+                <div class="upload-item required">
+                    <label class="upload-label">
+                        <span class="label-text">数字人形象照片</span>
+                        <span class="required-mark">*</span>
+                    </label>
+                    <div class="upload-zone" id="avatarZone" onclick="document.getElementById('avatarInput').click()">
+                        <input type="file" id="avatarInput" accept="image/*" hidden>
+                        <div class="upload-placeholder" id="avatarPlaceholder">
+                            <div class="upload-icon">🖼️</div>
+                            <p>点击上传数字人形象照片</p>
+                            <span class="upload-hint">支持 JPG、PNG 格式，建议正方形高清照片</span>
+                        </div>
+                        <img id="avatarPreview" class="preview-img" hidden>
+                        <button class="remove-btn" id="removeAvatar" hidden>✕</button>
+                    </div>
+                </div>
+                   <div class="form-group" style="margin-top: 12px;">
+                        <label for="avatarPromptInput">或用描述生成（可选）</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input
+                                id="avatarPromptInput"
+                                class="form-control"
+                                type="text"
+                                placeholder="例如：年轻女性，白衬衫，短发，正面半身，干净背景，写实风格"
+                                maxlength="300"
+                            />
+                            <button type="button" class="btn btn-secondary" id="avatarGenerateBtn" style="white-space:nowrap;">
+                                生成形象
+                            </button>
+                        </div>
+                        <span class="form-hint">需要配置 OPENAI_API_KEY；生成后会自动作为“形象照片”使用</span>
+                    </div>
+                </div>
+
+                <!-- 背景图片 -->
+                <div class="upload-item">
+                    <label class="upload-label">
+                        <span class="label-text">背景图片</span>
+                        <span class="optional-mark">（可选）</span>
+                    </label>
+                    <div class="upload-zone" id="bgZone" onclick="document.getElementById('bgInput').click()">
+                        <input type="file" id="bgInput" accept="image/*" hidden>
+                        <div class="upload-placeholder" id="bgPlaceholder">
+                            <div class="upload-icon">🌅</div>
+                            <p>点击上传背景图片</p>
+                            <span class="upload-hint">支持 JPG、PNG 格式，建议 1920x1080</span>
+                        </div>
+                        <img id="bgPreview" class="preview-img" hidden>
+                        <button class="remove-btn" id="removeBg" hidden>✕</button>
+                    </div>
+                </div>
+
+                <!-- 音色参考 -->
+                <div class="upload-item">
+                    <label class="upload-label">
+                        <span class="label-text">音色参考音频</span>
+                        <span class="optional-mark">（可选）</span>
+                    </label>
+                    <div class="upload-zone audio-zone" id="audioZone" onclick="document.getElementById('audioInput').click()">
+                        <input type="file" id="audioInput" accept="audio/*" hidden>
+                        <div class="upload-placeholder" id="audioPlaceholder">
+                            <div class="upload-icon">🎵</div>
+                            <p>点击上传参考音频</p>
+                            <span class="upload-hint">支持 MP3、WAV 格式，用于声音克隆（预留）</span>
+                        </div>
+                        <div class="audio-preview" id="audioPreview" hidden>
+                            <div class="audio-icon">🎵</div>
+                            <span class="audio-name" id="audioName"></span>
+                        </div>
+                        <button class="remove-btn" id="removeAudio" hidden>✕</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 右侧：配置与生成 -->
+            <section class="panel config-panel">
+                <h2>⚙️ 播报配置</h2>
+                
+                <!-- 音色选择 -->
+                <div class="form-group">
+                    <label for="voiceSelect">选择音色 <span class="required-mark">*</span></label>
+                    <select id="voiceSelect" class="form-control">
+                        <option value="">正在加载音色列表...</option>
+                    </select>
+                    <span class="form-hint">选择适合您内容的播报音色</span>
+                </div>
+
+                <!-- 音色描述（自动匹配） -->
+                <div class="form-group">
+                    <label for="voicePromptInput">音色描述（可选）</label>
+                    <input
+                        id="voicePromptInput"
+                        class="form-control"
+                        type="text"
+                        placeholder="例如：女声，亲切专业，新闻播报风格，略慢"
+                        maxlength="200"
+                    />
+                    <span class="form-hint">当音色选择“自动匹配（根据描述）”时会使用该描述</span>
+                </div>
+
+
+                <!-- 语速调节 -->
+                <div class="form-group">
+                    <label for="speedRange">语速调节</label>
+                    <div class="range-control">
+                        <input type="range" id="speedRange" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <span class="range-value" id="speedValue">1.0x</span>
+                    </div>
+                </div>
+                
+                <!-- 参考音频文本 -->
+                <div class="form-group">
+                    <label for="promptText">参考音频文本（用于声音克隆）</label>
+                    <textarea
+                        id="promptText"
+                        class="form-control text-area"
+                        placeholder="请输入你上传的参考音频里实际说的内容..."
+                        rows="3"
+                    ></textarea>
+                    <span class="form-hint">建议与参考音频内容一致；CosyVoice3 会自动补 <|endofprompt|> 前缀</span>
+                </div>
+
+
+                <!-- 播报文本 -->
+                <div class="form-group text-group">
+                    <label for="textInput">
+                        播报文本 <span class="required-mark">*</span>
+                        <span class="char-count" id="charCount">0 / 5000</span>
+                    </label>
+                    <textarea 
+                        id="textInput" 
+                        class="form-control text-area" 
+                        placeholder="请输入数字人要播报的文本内容..."
+                        maxlength="5000"
+                    ></textarea>
+                    <span class="form-hint">支持中文、英文、数字，最多5000字</span>
+                </div>
+
+                <!-- 生成按钮 -->
+                <button class="generate-btn" id="generateBtn">
+                    <span class="btn-icon">✨</span>
+                    <span class="btn-text">生成数字人播报视频</span>
+                </button>
+
+               <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 18px 0;">
+
+                <h2 style="margin-top: 0;">📚 投教课程生成</h2>
+
+                <div class="form-group">
+                    <label for="courseTopicInput">课程主题</label>
+                    <input id="courseTopicInput" class="form-control" type="text" placeholder="例如：什么是ETF？ETF适合哪些投资者？" maxlength="120" />
+                </div>
+
+                <div class="form-group">
+                    <label for="courseAudienceSelect">受众</label>
+                    <select id="courseAudienceSelect" class="form-control">
+                        <option value="beginner">小白入门</option>
+                        <option value="intermediate">有基础</option>
+                        <option value="advanced">进阶</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="courseDurationInput">时长（分钟）</label>
+                    <input id="courseDurationInput" class="form-control" type="number" min="1" max="30" value="5" />
+                </div>
+
+                <div class="form-group">
+                    <label for="courseKeyPointsInput">重点（可选）</label>
+                    <input id="courseKeyPointsInput" class="form-control" type="text" placeholder="例如：风险提示、费用、跟踪误差、适当性" maxlength="600" />
+                </div>
+
+                <button class="btn btn-secondary" id="courseDraftBtn" type="button" style="width:100%; justify-content:center;">
+                    生成课程脚本
+                </button>
+
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="courseDraftText">脚本草稿（可编辑）</label>
+                    <textarea id="courseDraftText" class="form-control text-area" placeholder="点击“生成课程脚本”后会出现在这里；确认无误后可直接用于生成视频"></textarea>
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                        <button class="btn btn-primary" id="useDraftBtn" type="button" style="flex:1; justify-content:center;">用于播报文本</button>
+                        <button class="btn btn-secondary" id="draftToVideoBtn" type="button" style="flex:1; justify-content:center;">直接生成视频</button>
+                    </div>
+                    <span class="form-hint">课程脚本需要配置 OPENAI_API_KEY；生成后会自动填充到播报文本</span>
+                </div>
+            </section>
+        </main>
+
+        <!-- 任务状态区 -->
+        <section class="panel tasks-panel" id="tasksPanel" style="display: none;">
+            <h2>📋 任务列表</h2>
+            <div class="tasks-list" id="tasksList"></div>
+        </section>
+    </div>
+
+    <!-- 生成结果弹窗 -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">✕</button>
+            <h3>🎉 生成完成</h3>
+            <div class="video-container">
+                <video id="resultVideo" controls></video>
+            </div>
+            <div class="modal-actions">
+                <a id="downloadBtn" class="btn btn-primary" download>⬇️ 下载视频</a>
+                <button class="btn btn-secondary" id="closeModalBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">处理中...</p>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
