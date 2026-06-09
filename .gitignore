@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Environments
+.venv/
+venv/
+env/
+conda-env/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Model files
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.engine
+*.tflite
+*.gguf
+
+# Model directories
+models/
+model/
+checkpoints/
+pretrained_models/
+weights/
+CosyVoice/pretrained_models/
+DigitalHuman/digital_human/wav2lip/models/
+
+# Generated files
+outputs/
+output/
+results/
+logs/
+temp/
+tmp/
+cache/
+.cache/
+
+# Editors and system files
+.vscode/
+.idea/
+.DS_Store
