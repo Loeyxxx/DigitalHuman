@@ -41,3 +41,7 @@ cache/
 .vscode/
 .idea/
 .DS_Store
+
+CosyVoice/pretrained_models/*
+!CosyVoice/pretrained_models/
+!CosyVoice/pretrained_models/.gitkeep
