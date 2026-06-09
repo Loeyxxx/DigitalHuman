@@ -26,14 +26,6 @@ conda-env/
 *.tflite
 *.gguf
 
-# Model directories
-models/
-model/
-checkpoints/
-pretrained_models/
-weights/
-CosyVoice/pretrained_models/
-DigitalHuman/digital_human/wav2lip/models/
 
 # Generated files
 outputs/
